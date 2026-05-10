@@ -1,0 +1,52 @@
+# ============================================================
+# Legal Document Summarization — LoRA Fine-Tuning
+# Requirements
+# Python >= 3.10
+# CUDA >= 11.8 required for bitsandbytes and Flash Attention 2
+# ============================================================
+
+# ── Core ML / Deep Learning ──────────────────────────────────
+torch==2.3.0
+torchvision==0.18.0
+
+# ── Hugging Face Ecosystem ───────────────────────────────────
+transformers==4.44.0
+datasets==2.20.0
+accelerate==0.33.0
+evaluate==0.4.2
+tokenizers==0.19.1
+
+# ── PEFT / LoRA ──────────────────────────────────────────────
+peft==0.12.0
+
+# ── QLoRA Quantization ───────────────────────────────────────
+bitsandbytes==0.43.3
+
+# ── Supervised Fine-Tuning Trainer ───────────────────────────
+trl==0.10.1
+
+# ── Evaluation Metrics ───────────────────────────────────────
+rouge_score==0.1.2
+bert-score==0.3.13
+nltk==3.8.1          # Required by METEOR (meteor metric)
+
+# ── Visualization ────────────────────────────────────────────
+matplotlib==3.9.0
+seaborn==0.13.2
+pandas==2.2.2
+numpy==1.26.4
+
+# ── Utilities ────────────────────────────────────────────────
+pyyaml==6.0.1
+scipy==1.13.1
+scikit-learn==1.5.0
+tqdm==4.66.4
+regex==2024.5.15
+sentencepiece==0.2.0
+protobuf==5.27.2
+
+# ── Optional: Experiment Tracking ────────────────────────────
+# wandb==0.17.0       # Uncomment to enable W&B logging
+
+# ── Optional: Flash Attention 2 (requires CUDA, build from source) ──
+# flash-attn==2.6.3   # pip install flash-attn --no-build-isolation

@@ -1,0 +1,102 @@
+# =============================================================================
+# Legal Document Summarization — Centralised Training Configuration
+# =============================================================================
+# This file is the single source of truth for all hyperparameters.
+# Import via: from configs.training_config import load_config
+
+# ── Model ─────────────────────────────────────────────────────────────────────
+model:
+  base_model_id: "mistralai/Mistral-7B-Instruct-v0.3"
+  max_seq_length: 1024          # Reduced for 8GB VRAM GPU
+  torch_dtype: "float16"       # BF16 for A100/H100; use float16 for older GPUs
+  device_map: "auto"            # Automatic multi-GPU distribution
+  trust_remote_code: false
+
+# ── Quantization (LoRA) ──────────────────────────────────────────────────────
+quantization:
+  load_in_4bit: false
+  bnb_4bit_quant_type: "nf4"               # Normal Float 4 — best for LLMs
+  bnb_4bit_compute_dtype: "float16"       # Computation dtype (not storage)
+  bnb_4bit_use_double_quant: true          # Nested quantization saves ~0.4 GB
+
+# ── LoRA Adapter ──────────────────────────────────────────────────────────────
+lora:
+  r: 16                          # Rank — higher = more expressive, more VRAM
+  lora_alpha: 32                 # Scaling factor (effective lr scale = alpha/r)
+  lora_dropout: 0.05             # Dropout on LoRA layers for regularization
+  bias: "none"                   # Don't train bias terms
+  task_type: "CAUSAL_LM"
+  target_modules:                # Apply LoRA to all linear projections
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+# ── Training Arguments ────────────────────────────────────────────────────────
+training:
+  output_dir: "./models/lora_checkpoints"
+  num_train_epochs: 3
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 32     # Effective batch size = 1 * 32 = 32
+  learning_rate: 2.0e-4
+  lr_scheduler_type: "cosine"
+  warmup_steps: 100
+  weight_decay: 0.01
+  optim: "adamw_torch"           # Standard AdamW for LoRA fine-tuning
+  fp16: true
+  bf16: false
+  logging_steps: 25
+  eval_strategy: "steps"
+  eval_steps: 200
+  save_strategy: "steps"
+  save_steps: 200
+  save_total_limit: 3                 # Keep only best 3 checkpoints
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  report_to: "none"                   # Set to "wandb" for experiment tracking
+  gradient_checkpointing: true        # Trade speed for memory
+  group_by_length: true               # Group similar-length sequences for efficiency
+  dataloader_num_workers: 0
+  seed: 42
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
+dataset:
+  # Verified public HuggingFace datasets — no authentication needed
+  primary_source: "joelniklaus/legal_case_document_summarization"
+  secondary_source: "billsum"
+  cache_dir: "./data/cache"
+  train_split: 0.80
+  val_split: 0.10
+  test_split: 0.10
+  max_input_tokens: 800         # Reduced for 8GB VRAM
+  max_target_tokens: 450        # Truncate target summary to this length
+  min_summary_tokens: 30        # Filter out very short summaries (billsum can be short)
+  max_summary_tokens: 600       # Filter out very long summaries
+  min_ratio: 2                  # Minimum doc:summary length ratio
+  max_ratio: 80                 # Maximum doc:summary length ratio
+  seed: 42
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+paths:
+  data_dir: "./data"
+  processed_data_dir: "./data/processed"
+  models_dir: "./models"
+  adapter_dir: "./models/lora_adapter"
+  merged_dir: "./models/merged_model"
+  results_dir: "./results"
+  plots_dir: "./results/plots"
+  metrics_file: "./results/metrics.json"
+  predictions_file: "./results/predictions.jsonl"
+
+# ── Inference ─────────────────────────────────────────────────────────────────
+inference:
+  max_new_tokens: 512
+  temperature: 0.1              # Low temperature for deterministic legal outputs
+  top_p: 0.9
+  do_sample: false              # Greedy decoding for consistency
+  repetition_penalty: 1.15

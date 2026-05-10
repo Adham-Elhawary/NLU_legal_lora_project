@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Data & Models (large files — use Git LFS or DVC)
+data/cache/
+data/processed/
+models/lora_checkpoints/
+models/merged_model/
+models/lora_adapter/*.safetensors
+
+# Results (auto-generated)
+results/plots/
+results/*.json
+results/*.csv
+
+# Logs
+*.log
+pipeline.log
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
